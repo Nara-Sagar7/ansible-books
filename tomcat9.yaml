@@ -50,21 +50,19 @@
       template:
         src: templates/tomcat-users.xml.j2
         dest: /opt/tomcat/conf/tomcat-users.xml.j2
-        notify:
-          - restart tomcat
+      notify:
+        - restart tomcat
     - name: copy the context.xml
       copy:
         src: files/context.xml
-        dest: "{{ item }}"
-      loop:
-        - /opt/tomcat/webapps/manager/META-INF/context.xml
-        - /opt/tomcat/webapps/host-manager/META-INF/context.xml
+        dest: /opt/tomcat/webapps/manager/META-INF
+        owner: tomcat
       notify:
         - restart tomcat
   handlers:
-    name: restart tomcat
-    service:
-      name: tomcat
-      state: restarted      
+    - name: restart tomcat
+      service:
+        name: tomcat
+        state: restarted      
 
     
