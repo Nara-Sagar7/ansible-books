@@ -1,0 +1,70 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    tomcat_user: quality
+    tomcat_passwd: password
+  tasks: 
+    - name: install java and update packages
+      apt: 
+        name: default-jdk
+        update_cache: yes
+        state: present
+    - name: create group
+      group:
+        name: tomcat
+        state: present
+    - name: create user  
+      user:
+        name: tomcat
+        state: present
+        group: tomcat
+    - name: create directory
+      file:
+        path: /opt/tomcat
+        owner: tomcat
+        state: directory
+    - name: unzip and rename
+      unarchive:
+          src: http://mirrors.estointernet.in/apache/tomcat/tomcat-9/v9.0.27/bin/apache-tomcat-9.0.27.tar.gz
+          dest: /opt/tomcat
+          remote_src: yes
+    - name: changing group 
+      file: 
+        path: /opt/tomcat
+        owner: tomcat
+        group: tomcat
+        mode: '1777'
+    - name: copy a systemd file 
+      copy:
+        src: files/tomcat.service
+        dest: /etc/systemd/system
+        owner: root
+    - name: start /templates/tomcat.service.j2
+      systemd:
+        name: tomcat.service
+        daemon_reload: yes
+      notify:
+        - restart tomcat
+    - name: copy the templates to tomcat
+      template:
+        src: templates/tomcat-users.xml.j2
+        dest: /opt/tomcat/conf/tomcat-users.xml.j2
+        notify:
+          - restart tomcat
+    - name: copy the context.xml
+      copy:
+        src: files/context.xml
+        dest: "{{ item }}"
+      loop:
+        - /opt/tomcat/webapps/manager/META-INF/context.xml
+        - /opt/tomcat/webapps/host-manager/META-INF/context.xml
+      notify:
+        - restart tomcat
+  handlers:
+    name: restart tomcat
+    service:
+      name: tomcat
+      state: restarted      
+
+    

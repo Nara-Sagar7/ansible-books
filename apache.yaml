@@ -1,0 +1,53 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: install httpd
+      yum:
+        name: httpd
+        state: present
+      notify:
+        - restart and enable httpd
+      when: ansible_facts['os_family'] == "redhat"
+
+    - name: install php modules
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+       - php
+       - php-mysql
+      notify:
+        - restart and enable httpd
+      when: ansible_facts ['os_family'] == "redhat"
+    
+    - name: install apache2 and update packages
+      apt:
+        name: apache2
+        update_cache: yes
+        state: present
+      notify:
+        - restart and enable apache2
+      when: ansible_facts ['os_family'] == "debian"
+    - name: install php modules
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+       - php
+       - php-mysql
+       - php-cli
+      notify:
+        - restart and enable apache2
+      when: ansible_facts['os_family'] == "debian"
+  handlers:
+    - name: restart and enable httpd
+      service:
+        name: httpd
+        state: restarted
+      when: ansible_facts['os_family'] == "redhat"
+    - name: restart and enable apache2
+      service:
+        name: apache2
+        state: restarted
+      when: ansible_facts['os_family'] == "debian"

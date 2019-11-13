@@ -1,0 +1,38 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: install java and update ubuntu packages
+      apt:
+        name: default-jdk
+        update_cache: yes
+        state: present
+    - name: ensure group tomcat
+      group:
+        name: tomcat
+        state: present
+    - name: add the user tomcat
+      user: 
+        name: tomcat
+        groups: tomcat
+        append: yes
+    - name: create folder 
+      file: 
+        path: /opt/tomcat
+        owner: tomcat
+        group: tomcat
+        mode: '1777'
+        state: directory
+    - name: download and mv the tomcat binary
+      get_url:
+        url: http://apachemirror.wuchna.com/tomcat/tomcat-8/v8.5.47/bin/apache-tomcat-8.5.47.tar.gz
+        dest: /opt/tomcat
+        force_basic_auth: yes
+    - name: unzip the tomcat file
+      unarchive:
+        src: /opt/tomcat/apache-tomcat-8.5.47.tar.gz
+        dest: /opt/tomcat
+        remote_src: yes
+    
+
+    

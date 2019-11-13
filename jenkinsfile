@@ -1,0 +1,12 @@
+node {
+    stage('scm' ) {
+       https://github.com/Nara-Sagar7/Shopiazer-Project.git
+    }
+    stage('build') {
+       sh 'mvn package' 
+    }
+    stage('archive') {
+        archiveArtifacts '**/*.jar'
+    }
+
+}
